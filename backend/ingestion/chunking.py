@@ -11,7 +11,6 @@ def split_documents(documents, chunk_size=1000, chunk_overlap=200):
 
     print(f"\nTotal Chunks Created: {len(chunks)}")
 
-    # Preview first 3 chunks
     for i, chunk in enumerate(chunks[:3]):
         print(f"\nChunk {i+1}")
         print(f"Source: {chunk.metadata.get('source', 'Unknown')}")
