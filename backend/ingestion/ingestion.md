@@ -36,12 +36,16 @@ PDF Document => Load PDF => Extract Text => Extract Images & Tables => Text Chun
 * Splits long text into smaller chunks.
 * Improves retrieval accuracy.
 
-### 5. Embedding Generation
+### 5. Word Files Chunking
+
+* Splits long word documented text into smaller chunks.
+
+### 6. Embedding Generation
 
 * Converts text chunks into vector embeddings.
 * Enables semantic similarity search.
 
-### 6. Vector Database Storage
+### 7. Vector Database Storage
 
 * Stores embeddings in a vector database (Qdrant/FAISS).
 * Allows efficient retrieval of relevant information.
