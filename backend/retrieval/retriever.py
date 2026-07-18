@@ -7,45 +7,35 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 
+embedding_model = None
+retriever = None
 
-def loadVectorStore():
-
-    print("Connecting to Qdrant Vector Database...")
-
-    project_root = Path(__file__).resolve().parents[2]
-    db_path = project_root / "db" / "qdrant_db"
-
-    # Embedding Model
-    # embedding_model = OpenAIEmbeddings(
-    #     model="text-embedding-3-small"
-    # )
-    embedding_model = HuggingFaceEmbeddings(
-        model_name="BAAI/bge-small-en-v1.5"
-    )
-
-    client = QdrantClient(
-        path=str(db_path)
-    )
-
-    vectorstore = QdrantVectorStore(
-        client=client,
-        collection_name="omnibrain",
-        embedding=embedding_model
-    )
-
-    return vectorstore
 
 def getRetriever():
+    global embedding_model, retriever
 
-    vectorstore = loadVectorStore()
-    retriever = vectorstore.as_retriever(
-        search_kwargs={
-            "k": 5
-        }
-    )
+    if retriever is None:
+        print("Loading Retriever...")
+
+        # Embedding Model
+        # embedding_model = OpenAIEmbeddings(
+        #     model="text-embedding-3-small"
+        # )
+        
+        embedding_model = HuggingFaceEmbeddings(
+            model_name="BAAI/bge-small-en-v1.5"
+        )
+        project_root = Path(__file__).resolve().parents[2]
+        db_path = project_root / "db" / "qdrant_db"
+        vectorstore = QdrantVectorStore.from_existing_collection(
+            embedding=embedding_model,
+            path=str(db_path),
+            collection_name="omnibrain"
+        )
+
+        retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
+
     return retriever
 
 def searchDocuments(query):
-    retriever = getRetriever()
-    documents = retriever.invoke(query)
-    return documents
+    return getRetriever().invoke(query)

@@ -1,20 +1,25 @@
-from retriever import searchDocuments
+from backend.retrieval.retriever import searchDocuments
+from backend.llm.llm import generateAnswer
 
 def processQuery(query):
 
-    documents = searchDocuments(query)
-    context = "\nexit()".join(
-        [doc.page_content for doc in documents]
+    docs = searchDocuments(query)
+
+    context = "\n\n".join(
+        [doc.page_content for doc in docs]
     )
 
-    sources = [
-        doc.metadata.get("source", "Unknown")
-        for doc in documents
-    ]
-    response = {
+    sources = list(set(
+        [doc.metadata["source"] for doc in docs]
+    ))
+
+    answer = generateAnswer(
+        question=query,
+        context=context
+    )
+
+    return {
         "query": query,
-        "documents": documents,
-        "context": context,
+        "answer": answer,
         "sources": sources
     }
-    return response
