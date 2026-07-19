@@ -5,13 +5,12 @@ from pathlib import Path
 # from langchain_openai import OpenAIEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_qdrant import QdrantVectorStore
-from qdrant_client import QdrantClient
 
 embedding_model = None
 retriever = None
 
 
-def getRetriever():
+def getRetriever(k):
     global embedding_model, retriever
 
     if retriever is None:
@@ -33,9 +32,9 @@ def getRetriever():
             collection_name="omnibrain"
         )
 
-        retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
+        retriever = vectorstore.as_retriever(search_kwargs={"k": k})
 
     return retriever
 
-def searchDocuments(query):
-    return getRetriever().invoke(query)
+def searchDocuments(query, k=5):
+    return getRetriever(k).invoke(query)

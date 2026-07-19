@@ -1,33 +1,27 @@
 from dotenv import load_dotenv
-from backend.llm.prompt import rag_prompt 
-from langchain_core.prompts import ChatPromptTemplate
-
 from langchain_google_genai import ChatGoogleGenerativeAI
-# from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
 
 load_dotenv()
 
-# Gemini
 llm = ChatGoogleGenerativeAI(
     model="gemini-3.5-flash",
     temperature=0
 )
 
-# openAI
-# llm = ChatOpenAI(
-#     model="gpt-4o-mini",
-#     temperature=0
-# )
+class RouteDecision(BaseModel):
+    next_agent: str = Field(description="The next agent to route to: 'SEARCH', 'VISION', or 'SQL'")
 
-chain = rag_prompt | llm
+router_llm = llm.with_structured_output(RouteDecision)
 
-def generateAnswer(question, context):
-    response = chain.invoke(
-        {
-            "question": question,
-            "context": context
-        }
-    )
+def getRouterDecision(question, prompt_template):
+    chain = prompt_template | router_llm
+    response = chain.invoke({"question": question})
+    return response.next_agent.strip().upper()
+
+def runAgentChain(prompt_template, input_variables: dict) -> str:
+    chain = prompt_template | llm
+    response = chain.invoke(input_variables)
     content = response.content
 
     if isinstance(content, list):
@@ -36,5 +30,4 @@ def generateAnswer(question, context):
             for block in content
             if isinstance(block, dict) and block.get("type") == "text"
         )
-
-    return content
+    return str(content).strip()

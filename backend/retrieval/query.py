@@ -1,25 +1,22 @@
 from backend.retrieval.retriever import searchDocuments
-from backend.llm.llm import generateAnswer
 
 def processQuery(query):
-
     docs = searchDocuments(query)
-
-    context = "\n\n".join(
-        [doc.page_content for doc in docs]
-    )
-
-    sources = list(set(
-        [doc.metadata["source"] for doc in docs]
-    ))
-
-    answer = generateAnswer(
-        question=query,
-        context=context
-    )
-
+    
+    context_chunks = []
+    formatted_sources = set()
+    
+    for doc in docs:
+        context_chunks.append(doc.page_content)
+        
+        source_info = doc.metadata.get("source", "Unknown")
+        if "sheet" in doc.metadata:
+            source_info += f" (Sheet: {doc.metadata['sheet']})"
+        formatted_sources.add(source_info)
+        
+    context = "\n\n".join(context_chunks)
+    
     return {
-        "query": query,
-        "answer": answer,
-        "sources": sources
+        "context": context,
+        "sources": list(formatted_sources)
     }
