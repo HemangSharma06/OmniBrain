@@ -1,7 +1,7 @@
 from backend.retrieval.query import searchDocuments 
 
 def search_agent(state: dict) -> dict:
-    print("\n🔍 [Search Agent]: Executing semantic document retrieval...")
+    print("\n[Search Agent]: Executing semantic document retrieval...")
     user_query = state.get("query", "")
     
     retrieved_docs = searchDocuments(user_query, k=5)

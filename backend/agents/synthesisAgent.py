@@ -2,7 +2,7 @@ from backend.llm.llm import runAgentChain
 from backend.llm.prompt import synthesis_prompt
 
 def synthesis_agent(state: dict) -> dict:
-    print("\n✍️ [Synthesis Agent]: Combining findings into final memo...")
+    print("\n[Synthesis Agent]: Combining findings into final memo...")
     user_query = state.get("query", "")
     
     gathered_context = state.get("context", [])

@@ -2,7 +2,7 @@ from backend.llm.llm import runAgentChain
 from backend.llm.prompt import sql_prompt
 
 def sql_agent(state: dict) -> dict:
-    print("\n🗄️ [SQL Agent]: Synthesizing structured DB query...")
+    print("\n[SQL Agent]: Synthesizing structured DB query...")
     user_query = state.get("query", "")
     
     generated_sql = runAgentChain(sql_prompt, {"question": user_query})

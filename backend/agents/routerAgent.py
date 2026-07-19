@@ -2,7 +2,7 @@ from backend.llm.llm import getRouterDecision
 from backend.llm.prompt import router_prompt
 
 def router_agent(state: dict) -> dict:
-    print("\n🤖 [Router Agent]: Analyzing user intent...")
+    print("\n[Router Agent]: Analyzing user intent...")
     
     user_query = state.get("query", "")
     

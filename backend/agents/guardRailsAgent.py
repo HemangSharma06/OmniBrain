@@ -2,7 +2,7 @@ from backend.llm.llm import runAgentChain
 from backend.llm.prompt import guardrails_prompt
 
 def guardrails_agent(state: dict) -> dict:
-    print("\n🛡️ [Guardrails Agent]: Running strict alignment verification...")
+    print("\n[Guardrails Agent]: Running strict alignment verification...")
     
     gathered_context = state.get("context", [])
     combined_context_str = "\n\n".join(gathered_context)
