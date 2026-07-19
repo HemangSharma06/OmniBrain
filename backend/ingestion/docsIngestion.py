@@ -15,14 +15,14 @@ def loadWordDocuments(DocumentPath):
         raise FileNotFoundError(f"Path not found in the System {DocumentPath}")
     loader_docx = DirectoryLoader(
         path=DocumentPath,
-        glob="*.docx",
+        glob="**/*.docx",
         loader_cls=Docx2txtLoader
     )
     documents = loader_docx.load()
     
     loader_doc = DirectoryLoader(
         path=DocumentPath,
-        glob="*.doc",
+        glob="**/*.doc",
         loader_cls=UnstructuredWordDocumentLoader
     )
     documents.extend(loader_doc.load())
@@ -30,7 +30,7 @@ def loadWordDocuments(DocumentPath):
         raise FileNotFoundError("No file found in the directory")
     for i, document in enumerate(documents):
         print(f"\nDocument: {i+1}")
-        print(f"Source: {document.metadata['source']}")
+        print(f"Source: {document.metadata.get('source', 'Unknown')}")
         print(f"Content Length: {len(document.page_content)}")
         print(f"Content Preview: {document.page_content[:100]}")
         print(f"Metadata: {document.metadata}")

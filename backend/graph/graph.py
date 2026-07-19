@@ -1,4 +1,5 @@
 from langgraph.graph import StateGraph, END
+
 from backend.graph.state import AgentState
 from backend.graph.nodes import (
     router_node,
@@ -20,32 +21,59 @@ workflow.add_node("guardrails", guardrails_node)
 
 workflow.set_entry_point("router")
 
-def route_to_agent(state):
-    next_agent = state.get("next_step", "").upper()
-    if next_agent == "SEARCH":
+
+# Router Decision
+def router_decision(state):
+
+    next_step = state.get("next_step", "").upper()
+
+    if next_step == "SEARCH":
         return "search"
-    elif next_agent == "VISION":
+
+    elif next_step == "VISION":
         return "vision"
-    elif next_agent == "SQL":
+
+    elif next_step == "SQL":
         return "sql"
-    else:
-        return END  
+
+    return END
+
+
 workflow.add_conditional_edges(
     "router",
-    route_to_agent,
+    router_decision,
     {
         "search": "search",
         "vision": "vision",
-        "sql": "sql",
+        "sql": "sql"
     }
 )
 
-workflow.add_edge("search", "synthesis")
+
+# After Search decide whether Vision is needed
+def after_search(state):
+
+    image_paths = state.get("image_paths", [])
+
+    if image_paths:
+        return "vision"
+
+    return "synthesis"
+
+
+workflow.add_conditional_edges(
+    "search",
+    after_search,
+    {
+        "vision": "vision",
+        "synthesis": "synthesis"
+    }
+)
+
+
 workflow.add_edge("vision", "synthesis")
 workflow.add_edge("sql", "synthesis")
-
 workflow.add_edge("synthesis", "guardrails")
 workflow.add_edge("guardrails", END)
 
-# Graph
 app = workflow.compile()

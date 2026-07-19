@@ -1,34 +1,46 @@
-import os
-import warnings
-warnings.filterwarnings('ignore')
+from pathlib import Path
 
 import easyocr
+
 from langchain_core.documents import Document
 
-from dotenv import load_dotenv
 
-load_dotenv()
+reader = easyocr.Reader(["en"])
 
-# Loading
-def loadImageDocuments(document_path):
 
-    if not os.path.exists(document_path):
-        raise FileNotFoundError(f"Path not found in the System: {document_path}")
-    reader = easyocr.Reader(['en'], gpu=False)
-    documents = []
-    for file in os.listdir(document_path):
-        if file.lower().endswith((".png", ".jpg", ".jpeg")):
+def load_images(data_dir: str):
 
-            image_path = os.path.join(document_path, file)
-            result = reader.readtext(image_path, detail=0)
-            text = "\n".join(result)
-            documents.append(
-                Document(
-                    page_content=text,
-                    metadata={"source": image_path}
-                )
+    docs = []
+
+    image_extensions = [
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".bmp",
+        ".webp"
+    ]
+
+    for image_path in Path(data_dir).rglob("*"):
+
+        if image_path.suffix.lower() not in image_extensions:
+            continue
+
+        result = reader.readtext(str(image_path))
+
+        extracted_text = "\n".join(
+            [item[1] for item in result]
+        )
+
+        docs.append(
+            Document(
+                page_content=extracted_text,
+                metadata={
+                    "source": str(image_path),
+                    "type": "image_ocr"
+                }
             )
-    if not documents:
-        raise FileNotFoundError("No image files found in the directory")
+        )
 
-    return documents
+    print(f"Loaded {len(docs)} images.")
+
+    return docs

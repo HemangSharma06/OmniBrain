@@ -6,20 +6,24 @@ from pathlib import Path
 from docsIngestion import loadWordDocuments
 from pdfIngestion import loadPdfDocuments
 from textIngestion import loadTextDocuments
-from imageIngestion import loadImageDocuments
+from imageIngestion import load_images
 from tableIngestion import loadTabularDocuments
+from visionIngestion import loadVisionDocuments
 
 from chunking import split_documents
 from VectorDB import createVectorStore
+from qdrant_client import QdrantClient
 
 
 def main():
-
+    project_root = Path(__file__).resolve().parents[2]
+    db_path = project_root / "db" / "qdrant_db"
+    client = QdrantClient(
+        path=db_path
+    )
     print("=" * 60)
     print("          OmniBrain Ingestion Pipeline")
     print("=" * 60)
-
-    project_root = Path(__file__).resolve().parents[2]
 
     documents = []
 
@@ -52,9 +56,9 @@ def main():
     print("\nLoading Images...")
     print("=" * 60)
     documents.extend(
-        loadImageDocuments(str(project_root / "data" / "images"))
+        load_images(str(project_root / "data" / "images"))
     )
-
+ 
     # CSV / Excel
     print("=" * 60)
     print("\nLoading Tabular Documents...")
@@ -65,6 +69,14 @@ def main():
 
     print(f"\nTotal Documents Loaded : {len(documents)}")
 
+    # vlm
+    print("="*60)
+    print("\nLoading Vision Documents...")
+    print("="*60)
+    documents.extend(
+        loadVisionDocuments(str(project_root / "data" / "images"))
+    )
+    
     # Chunking
     print("=" * 60)
     print("\nChunking Documents...")
@@ -77,7 +89,7 @@ def main():
     print("=" * 60)
     print("\nCreating Vector Store...")
     print("=" * 60)
-    createVectorStore(chunks)
+    createVectorStore(chunks, client)
 
     print("=" * 60)
     print("\nIngestion Pipeline Completed Successfully!")

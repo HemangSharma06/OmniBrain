@@ -60,7 +60,7 @@ def loadTabularDocuments(documentPath):
 
     for i, document in enumerate(documents):
         print(f"\nDocument: {i+1}")
-        print(f"Source: {document.metadata['source']}")
+        print(f"Source: {document.metadata.get('source', 'Unknown')}")
         print(f"Content Length: {len(document.page_content)}")
         print(f"Content Preview: {document.page_content[:100]}")
         print(f"Metadata: {document.metadata}")

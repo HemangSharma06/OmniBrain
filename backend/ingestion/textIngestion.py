@@ -12,7 +12,7 @@ def loadTextDocuments(DocumentPath):
         raise FileNotFoundError("Path not found in the System")
     loader = DirectoryLoader(
         path=DocumentPath,
-        glob="*.txt",
+        glob="**/*.txt",
         loader_cls=TextLoader
     )
     
@@ -20,11 +20,11 @@ def loadTextDocuments(DocumentPath):
     
     if not len(documents):
         raise FileNotFoundError("No file found in the directory")
-    # for i, document in enumerate(documents):
-    #     print(f"\nDocument: {i+1}")
-    #     print(f"Source: {document.metadata['source']}")
-    #     print(f"Content Length: {len(document.page_content)}")
-    #     print(f"Content Preview: {document.page_content[:100]}")
-    #     print(f"Metadata: {document.metadata}")
+    for i, document in enumerate(documents):
+        print(f"\nDocument: {i+1}")
+        print(f"Source: {document.metadata.get('source', 'Unknown')}")
+        print(f"Content Length: {len(document.page_content)}")
+        print(f"Content Preview: {document.page_content[:100]}")
+        print(f"Metadata: {document.metadata}")
         
     return documents
