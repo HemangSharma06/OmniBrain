@@ -218,4 +218,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Quadrant DB
 db/
+
+# Pyache
+__pycache__/
