@@ -3,12 +3,14 @@ warnings.filterwarnings("ignore")
 
 from pathlib import Path
 
-from docsIngestion import loadWordDocuments
-from pdfIngestion import loadPdfDocuments
-from textIngestion import loadTextDocuments
-from imageIngestion import load_images
-from tableIngestion import loadTabularDocuments
-from visionIngestion import loadVisionDocuments
+from backend.ingestion.docsIngestion import loadWordDocuments
+from backend.ingestion.pdfIngestion import loadPdfDocuments
+from backend.ingestion.textIngestion import loadTextDocuments
+from backend.ingestion.imageIngestion import load_images
+from backend.ingestion.tableIngestion import loadTabularDocuments
+from backend.ingestion.visionIngestion import loadVisionDocuments
+from backend.ingestion.chunking import split_documents
+from backend.ingestion.VectorDB import createVectorStore
 
 from chunking import split_documents
 from VectorDB import createVectorStore

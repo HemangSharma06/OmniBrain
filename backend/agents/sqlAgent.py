@@ -21,5 +21,6 @@ def sql_agent(state: dict) -> dict:
 
     return {
         "sql_query": generated_sql,
+        "sql_result": db_result,
         "context": [db_result]
     }

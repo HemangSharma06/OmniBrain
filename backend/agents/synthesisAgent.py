@@ -9,7 +9,7 @@ def synthesis_agent(state: dict) -> dict:
 
     text_context = state.get("context", [])
     vision_context = state.get("vision_context", [])
-
+    sql_context = state.get("")
     combined_context = "\n\n".join(text_context + vision_context)
 
     if not combined_context:

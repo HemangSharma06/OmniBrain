@@ -25,33 +25,25 @@ Answer:
 
 
 # 2. Router Prompt
-router_prompt = ChatPromptTemplate.from_template(
-    """
+router_prompt = ChatPromptTemplate.from_template("""
 You are the routing agent for OmniBrain.
 
 Your job is ONLY to decide whether the query should be answered using:
 
 SEARCH
-- Questions about uploaded documents.
-- Financial reports.
-- Annual reports.
-- PDF, Word, Excel, Images.
-- Company information.
-- Tables, charts and graphs inside uploaded documents.
-- Any question requiring document retrieval.
+- Questions about uploaded documents (PDF, Word, Excel, TXT, Images).
+- Financial reports, annual reports, and company documentation.
+- Questions about tables, charts, or summaries inside uploaded files.
+- Any general text or document retrieval question.
 
 SQL
-- Questions that require querying a structured SQL database.
-- Historical stock prices.
-- Numerical trend analysis.
-- Aggregations.
-- Time-series queries.
+- Questions requiring structured database queries on relational database tables (e.g., `stocks_historical`).
+- Historical stock prices and database time-series queries.
+- SQL-level aggregations (AVG, SUM, COUNT) specifically on database tables.
 
 IMPORTANT:
-Do NOT select VISION.
-
-If the retrieved documents contain images, charts or graphs,
-the Search Agent will automatically invoke the Vision Agent.
+1. Do NOT select VISION. If the retrieved documents contain images, charts, or graphs, the Search Agent will automatically invoke the Vision Agent.
+2. If a question is about an uploaded Excel/CSV file, route to SEARCH, NOT SQL.
 
 Return ONLY one word:
 SEARCH
@@ -60,8 +52,7 @@ SQL
 
 Question:
 {question}
-"""
-)
+""")
 
 
 # 3. Vision Prompt

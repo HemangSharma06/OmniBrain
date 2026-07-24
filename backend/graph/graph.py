@@ -36,7 +36,7 @@ def router_decision(state):
     elif next_step == "SQL":
         return "sql"
 
-    return END
+    return "search"
 
 
 workflow.add_conditional_edges(
