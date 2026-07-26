@@ -90,26 +90,39 @@ def loadTabularDocuments(filepath: str) -> str:
             print(f"[DUPLICATE DETECTED] File content already exists in table '{existing_table}'. Skipping upload.")
             return existing_table
 
-    # 2. Base name creation
-    raw_table_name = re.sub(r'[^a-zA-Z0-9_]', '_', os.path.splitext(filename)[0]).lower().strip("_")
-    table_name = get_unique_table_name(raw_table_name)
-
-    # 3. Reading and Insertion in PostgreSQL
+    # 2. Reading file first (Catch parsing errors BEFORE reserving table names)
     try:
         if filepath.endswith('.csv'):
             df = pd.read_csv(filepath)
         elif filepath.endswith(('.xls', '.xlsx')):
             df = pd.read_excel(filepath)
         else:
+            print(f"Unsupported tabular format: {filename}")
             return ""
 
-        # Column names cleanup (spaces -> _, lowercase)
-        df.columns = [re.sub(r'[^a-zA-Z0-9_]', '_', str(col)).lower().strip("_") for col in df.columns]
+        if df.empty:
+            print(f"Warning: Uploaded file '{filename}' is empty.")
+            return ""
 
-        # Save to Postgres
+        # Column names cleanup (spaces & special chars -> _, lowercase)
+        df.columns = [
+            re.sub(r'[^a-zA-Z0-9_]', '_', str(col)).lower().strip("_") 
+            for col in df.columns
+        ]
+
+        # 3. Dynamic Base Name Creation & Uniqueness Check
+        raw_table_name = re.sub(r'[^a-zA-Z0-9_]', '_', os.path.splitext(filename)[0]).lower().strip("_")
+        
+        # Guard against empty table names (e.g. file named "###.csv")
+        if not raw_table_name:
+            raw_table_name = "data_table"
+            
+        table_name = get_unique_table_name(raw_table_name)
+
+        # 4. Save to Postgres
         df.to_sql(name=table_name, con=engine, if_exists="fail", index=False)
 
-        # Log metadata entry
+        # 5. Log metadata entry atomically
         with engine.begin() as conn:
             conn.execute(
                 text("""

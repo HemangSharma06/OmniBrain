@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+from datetime import datetime
 from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -69,44 +70,55 @@ async def query(request: QueryRequest):
 UPLOAD_DIR = project_root / "data" / "temp_uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+
 def process_document(filepath: str):
-
     filepath = Path(filepath)
-
-    documents = []
-
+    file_str_path = str(filepath)
     suffix = filepath.suffix.lower()
 
-    if suffix == ".pdf":
-        documents.extend(loadPdfDocuments(UPLOAD_DIR))
+    try:
+        # ROUTE A: TABULAR DATA (.csv, .xlsx, .xls) -> PostgreSQL ONLY
+        if suffix in [".csv", ".xlsx", ".xls"]:
+            print(f"Processing Tabular File for PostgreSQL: {filepath.name}")
+            table_name = loadTabularDocuments(file_str_path)
+            print(f"Ingested into Postgres Table: '{table_name}'")
 
-    elif suffix in [".doc", ".docx"]:
-        documents.extend(loadWordDocuments(UPLOAD_DIR))
+        # ROUTE B: UNSTRUCTURED DATA -> Chunking -> Qdrant Vector DB
+        else:
+            documents = []
 
-    elif suffix == ".txt":
-        documents.extend(loadTextDocuments(UPLOAD_DIR))
+            if suffix == ".pdf":
+                documents.extend(loadPdfDocuments(file_str_path))
 
-    elif suffix in [".png", ".jpg", ".jpeg"]:
-        documents.extend(load_images(UPLOAD_DIR))
-        documents.extend(loadVisionDocuments(UPLOAD_DIR))
+            elif suffix in [".doc", ".docx"]:
+                documents.extend(loadWordDocuments(file_str_path))
 
-    elif suffix in [".csv", ".xlsx", ".xls"]:
-        documents.extend(loadTabularDocuments(UPLOAD_DIR))
+            elif suffix == ".txt":
+                documents.extend(loadTextDocuments(file_str_path))
 
-    else:
-        raise ValueError(f"Unsupported file type: {suffix}")
+            elif suffix in [".png", ".jpg", ".jpeg"]:
+                documents.extend(load_images(file_str_path))
+                documents.extend(loadVisionDocuments(file_str_path))
 
-    chunks = split_documents(documents)
+            else:
+                raise ValueError(f"Unsupported file type: {suffix}")
 
-    client = QdrantClient(
-        path=project_root / "db" / "qdrant_db"
-    )
+            if documents:
+                chunks = split_documents(documents)
 
-    createVectorStore(chunks, client)
-    print(f"{filepath.name} ingested successfully.")
-    if filepath.exists():
-        filepath.unlink()
-        print(f"{filepath.name} removed from temp storage.")
+                client = QdrantClient(
+                    path=str(project_root / "db" / "qdrant_db")
+                )
+
+                createVectorStore(chunks, client)
+                print(f"✅ {filepath.name} chunked and ingested into Qdrant VectorDB.")
+
+    finally:
+        # Guarantee single-file behavior: Always cleanup temp file after processing (or if an error occurs)
+        if filepath.exists():
+            filepath.unlink()
+            print(f"{filepath.name} removed from temp storage.")
+
 
 @app.post("/upload")
 async def upload_document(
@@ -114,7 +126,15 @@ async def upload_document(
     file: UploadFile = File(...)
 ):
     try:
-        save_path = UPLOAD_DIR / file.filename
+        original_path = Path(file.filename)
+        stem = original_path.stem
+        ext = original_path.suffix
+
+        # Format: filename_YYYY_MM_DD_HH_MM_SS.ext
+        timestamp_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        timestamped_filename = f"{stem}_{timestamp_str}{ext}"
+
+        save_path = UPLOAD_DIR / timestamped_filename
 
         with open(save_path, "wb") as f:
             f.write(await file.read())
@@ -127,11 +147,11 @@ async def upload_document(
         return {
             "success": True,
             "message": "File uploaded successfully. Ingestion started.",
-            "filename": file.filename
+            "filename": file.filename,
+            "saved_filename": timestamped_filename
         }
 
     except Exception as e:
-
         if 'save_path' in locals() and save_path.exists():
             save_path.unlink()
 
