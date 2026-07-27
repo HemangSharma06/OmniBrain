@@ -1,20 +1,30 @@
+import os
 from dotenv import load_dotenv
-
 from pydantic import BaseModel, Field
-
 from langchain_google_genai import ChatGoogleGenerativeAI
 # from langchain_openai import ChatOpenAI
 
 load_dotenv()
 
 # Gemini
-llm = ChatGoogleGenerativeAI(
+base_llm = ChatGoogleGenerativeAI(
     model="gemini-3.5-flash",
-    temperature=0
+    temperature=0,
+    google_api_key=os.getenv("GOOGLE_API_KEY")
 )
-vision_llm = ChatGoogleGenerativeAI(
+llm = base_llm.with_retry(
+    stop_after_attempt=5,
+    wait_exponential_jitter=True
+)
+
+vision_base_llm = ChatGoogleGenerativeAI(
     model="gemini-3.5-flash",
-    temperature=0
+    temperature=0,
+    google_api_key=os.getenv("GOOGLE_API_KEY")
+)
+vision_llm = vision_base_llm.with_retry(
+    stop_after_attempt=5,
+    wait_exponential_jitter=True
 )
 
 # OpenAI

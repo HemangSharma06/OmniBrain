@@ -24,31 +24,30 @@ Answer:
 """)
 
 
-# 2. Router Prompt
+# 2. Router Prompt (FIXED: CSV/Excel & Structured data now route to SQL)
 router_prompt = ChatPromptTemplate.from_template("""
 You are the routing agent for OmniBrain.
 
-Your job is ONLY to decide whether the query should be answered using:
-
-SEARCH
-- Questions about uploaded documents (PDF, Word, Excel, TXT, Images).
-- Financial reports, annual reports, and company documentation.
-- Questions about tables, charts, or summaries inside uploaded files.
-- Any general text or document retrieval question.
+Your job is ONLY to decide whether the user's query should be answered using:
 
 SQL
-- Questions requiring structured database queries on relational database tables (e.g., `stocks_historical`).
-- Historical stock prices and database time-series queries.
-- SQL-level aggregations (AVG, SUM, COUNT) specifically on database tables.
+- Questions requiring structured data analysis, aggregations (AVG, SUM, COUNT, MIN, MAX), sorting, filtering, or list extractions on tabular datasets (e.g., uploaded CSV/Excel files, relational databases).
+- Questions about tabular records, customer lists, transactions, numerical metrics, or structured data rows.
 
-IMPORTANT:
-1. Do NOT select VISION. If the retrieved documents contain images, charts, or graphs, the Search Agent will automatically invoke the Vision Agent.
-2. If a question is about an uploaded Excel/CSV file, route to SEARCH, NOT SQL.
+SEARCH
+- Questions about unstructured documents (PDF, Word, TXT, text content).
+- Financial reports, annual reports, company documentation, and text summaries.
+- Any general text or document retrieval question.
+
+VISION
+- Direct questions specifically asking to analyze raw images or visual diagrams.
 
 Return ONLY one word:
 SEARCH
 or
 SQL
+or
+VISION
 
 Question:
 {question}
@@ -69,7 +68,6 @@ Question:
 {question}
 
 Rules:
-
 1. Use ONLY the provided visual information.
 2. Mention trends whenever visible.
 3. Mention numerical values whenever available.
@@ -80,27 +78,20 @@ Answer:
 """)
 
 
-# 4. SQL Prompt
+# 4. SQL Prompt (FIXED: Uses dynamic {schema} instead of hardcoded stocks_historical)
 sql_prompt = ChatPromptTemplate.from_template("""
-You are an expert SQL generation assistant.
+You are an expert PostgreSQL Data Analyst.
 
-Database Schema
+Given the following live database schema, generate a syntactically correct PostgreSQL query to answer the user's question.
 
-stocks_historical
-(
-date,
-ticker,
-open_price,
-close_price,
-volume
-)
+Database Schema:
+{schema}
 
-Rules
-
-1. Generate ONLY executable SQL.
-2. No explanations.
-3. No markdown.
-4. Use standard SQL.
+Rules:
+1. Use ONLY table and column names provided in the schema above.
+2. Output ONLY executable SQL code.
+3. Do NOT include markdown code blocks (no ```sql).
+4. No explanations or introductory text.
 
 Question:
 {question}
@@ -121,8 +112,7 @@ Retrieved Context:
 Question:
 {question}
 
-Rules
-
+Rules:
 1. Produce one coherent answer.
 2. Preserve numerical values exactly.
 3. Use headings where appropriate.
@@ -147,8 +137,7 @@ Retrieved Context:
 Generated Answer:
 {answer}
 
-Instructions
-
+Instructions:
 1. Remove unsupported claims.
 2. Remove hallucinations.
 3. Preserve all supported facts.
