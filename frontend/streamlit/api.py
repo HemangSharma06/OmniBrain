@@ -1,12 +1,10 @@
 """HTTP client for the OmniBrain FastAPI backend."""
 
 from typing import Any, BinaryIO
-
 import requests
-
 from config import FASTAPI_BASE_URL
 
-API_TIMEOUT_SECONDS=360
+API_TIMEOUT_SECONDS=600
 
 class ApiError(RuntimeError):
     """A user-facing error raised when the backend cannot complete a request."""

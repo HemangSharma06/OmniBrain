@@ -1,41 +1,41 @@
-import os
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_ollama import ChatOllama
 # from langchain_openai import ChatOpenAI
 
 load_dotenv()
 
-# Gemini
-base_llm = ChatGoogleGenerativeAI(
-    model="gemini-3.5-flash",
-    temperature=0,
-    google_api_key=os.getenv("GOOGLE_API_KEY")
+# OLLAMA
+base_llm = ChatOllama(
+    model="llama3.2:3b",
+    temperature=0
 )
+
+vision_base_llm = ChatOllama(
+    model="llama3.2:3b",
+    temperature=0
+)
+
+# OpenAI
+# base_llm = ChatOpenAI(
+#     model="gpt-4.1-mini",
+#     temperature=0,
+# )
 llm = base_llm.with_retry(
     stop_after_attempt=5,
     wait_exponential_jitter=True
 )
 
-vision_base_llm = ChatGoogleGenerativeAI(
-    model="gemini-3.5-flash",
-    temperature=0,
-    google_api_key=os.getenv("GOOGLE_API_KEY")
-)
-vision_llm = vision_base_llm.with_retry(
-    stop_after_attempt=5,
-    wait_exponential_jitter=True
-)
-
-# OpenAI
-# llm = ChatOpenAI(
-#     model="gpt-4.1-mini",
-#     temperature=0
-# )
+# FOR VISION AGENT
 # vision_llm = ChatOpenAI(
 #     model="gpt-4.1-mini",
 #     temperature=0
 # )
+
+vision_llm = vision_base_llm.with_retry(
+    stop_after_attempt=5,
+    wait_exponential_jitter=True
+)
 
 # Router Schema
 class RouteDecision(BaseModel):
@@ -44,8 +44,11 @@ class RouteDecision(BaseModel):
     )
 
 
-router_llm = llm.with_structured_output(RouteDecision)
-
+router_llm = base_llm.with_structured_output(RouteDecision)
+router_llm = router_llm.with_retry(
+    stop_after_attempt=5,
+    wait_exponential_jitter=True
+)
 # Router
 def getRouterDecision(question, prompt_template):
 
