@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+import os
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -86,19 +87,19 @@ def process_document(filepath: str):
         # ROUTE B: UNSTRUCTURED DATA -> Chunking -> Qdrant Vector DB
         else:
             documents = []
-
+            dir_path = os.path.dirname(file_str_path)
             if suffix == ".pdf":
-                documents.extend(loadPdfDocuments(file_str_path))
+                documents.extend(loadPdfDocuments(dir_path))
 
             elif suffix in [".doc", ".docx"]:
-                documents.extend(loadWordDocuments(file_str_path))
+                documents.extend(loadWordDocuments(dir_path))
 
             elif suffix == ".txt":
-                documents.extend(loadTextDocuments(file_str_path))
+                documents.extend(loadTextDocuments(dir_path))
 
             elif suffix in [".png", ".jpg", ".jpeg"]:
-                documents.extend(load_images(file_str_path))
-                documents.extend(loadVisionDocuments(file_str_path))
+                documents.extend(load_images(dir_path))
+                documents.extend(loadVisionDocuments(dir_path))
 
             else:
                 raise ValueError(f"Unsupported file type: {suffix}")

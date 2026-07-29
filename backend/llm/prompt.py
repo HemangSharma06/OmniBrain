@@ -24,29 +24,30 @@ Answer:
 """)
 
 
-# 2. Router Prompt (FIXED: CSV/Excel & Structured data now route to SQL)
+# 2. Router Prompt
 router_prompt = ChatPromptTemplate.from_template("""
 You are the routing agent for OmniBrain.
 
-Your job is ONLY to decide whether the user's query should be answered using:
+Choose EXACTLY one of these routes.
 
-SQL
-- Questions requiring structured data analysis, aggregations (AVG, SUM, COUNT, MIN, MAX), sorting, filtering, or list extractions on tabular datasets (e.g., uploaded CSV/Excel files, relational databases).
-- Questions about tabular records, customer lists, transactions, numerical metrics, or structured data rows.
+SEARCH:
+- PDFs, DOCX, TXT, reports, manuals, annual reports.
+- General text retrieval.
+- Questions about companies, products, or documents.
+- If the user is asking about information contained in uploaded documents.
 
-SEARCH
-- Questions about unstructured documents (PDF, Word, TXT, text content).
-- Financial reports, annual reports, company documentation, and text summaries.
-- Any general text or document retrieval question.
+SQL:
+- ONLY if the answer requires querying uploaded CSV, Excel, or database tables.
+- ONLY if the user asks for filtering, aggregation, sorting, counts, averages, sums, or table records.
 
-VISION
-- Direct questions specifically asking to analyze raw images or visual diagrams.
+VISION:
+- ONLY if the user explicitly asks about an image, chart, graph, or diagram.
+
+If unsure, choose SEARCH.
 
 Return ONLY one word:
 SEARCH
-or
 SQL
-or
 VISION
 
 Question:
@@ -121,28 +122,4 @@ Rules:
 6. If information is insufficient, explicitly mention it.
 
 Final Answer:
-""")
-
-
-# 6. Guardrails Prompt
-guardrails_prompt = ChatPromptTemplate.from_template("""
-You are the Guardrails Agent.
-
-Your task is to verify that the generated answer is fully supported
-by the retrieved context.
-
-Retrieved Context:
-{context}
-
-Generated Answer:
-{answer}
-
-Instructions:
-1. Remove unsupported claims.
-2. Remove hallucinations.
-3. Preserve all supported facts.
-4. Preserve exact numerical values.
-5. Return ONLY the corrected answer.
-
-Corrected Answer:
 """)

@@ -1,13 +1,11 @@
 from PIL import Image
-
 from langchain_core.messages import HumanMessage
-
 from backend.llm.llm import vision_llm
-
+import time
 
 def vision_agent(state: dict) -> dict:
     print("\n[Vision Agent]: Analyzing images using Vision-Language Model...")
-
+    start = time.time()
     user_query = state.get("query", "").strip()
     image_paths = state.get("image_paths", [])
 
@@ -68,7 +66,8 @@ def vision_agent(state: dict) -> dict:
             )
 
     print(f"[Vision Agent]: Analyzed {len(image_paths)} image(s).")
-
+    
+    print(f"\n|---- Time Taken = {time.time()-start : .2f} ----|")
     return {
         "vision_context": analyses
     }

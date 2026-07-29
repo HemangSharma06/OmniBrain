@@ -113,7 +113,6 @@ def loadTabularDocuments(filepath: str) -> str:
         # 3. Dynamic Base Name Creation & Uniqueness Check
         raw_table_name = re.sub(r'[^a-zA-Z0-9_]', '_', os.path.splitext(filename)[0]).lower().strip("_")
         
-        # Guard against empty table names (e.g. file named "###.csv")
         if not raw_table_name:
             raw_table_name = "data_table"
             

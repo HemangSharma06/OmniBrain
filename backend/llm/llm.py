@@ -8,7 +8,10 @@ load_dotenv()
 # OLLAMA
 base_llm = ChatOllama(
     model="llama3.2:3b",
-    temperature=0
+    temperature=0,
+    num_predict=512,
+    keep_alive=-1,
+    num_ctx=4096
 )
 
 vision_base_llm = ChatOllama(
@@ -42,23 +45,21 @@ class RouteDecision(BaseModel):
     next_agent: str = Field(
         description="The next agent to route to: SEARCH, VISION or SQL"
     )
-
-
-router_llm = base_llm.with_structured_output(RouteDecision)
-router_llm = router_llm.with_retry(
-    stop_after_attempt=5,
-    wait_exponential_jitter=True
-)
 # Router
 def getRouterDecision(question, prompt_template):
 
-    chain = prompt_template | router_llm
+    prompt = prompt_template.format(question=question)
 
-    response = chain.invoke({
-        "question": question
-    })
+    print("=" * 80)
+    print(prompt)
+    print("=" * 80)
 
-    return response.next_agent.strip().upper()
+    response = base_llm.invoke(prompt)
+
+    print("RAW LLM:")
+    print(response.content)
+
+    return response.content.strip().upper()
 
 
 # Generic LLM Chain

@@ -27,7 +27,10 @@ class AgentState(TypedDict):
 
     # Image Path
     image_paths: list[str]
-
+    
+    # Vision Context
+    vision_context: list[str]
+    
     # SQL Query
     sql_query: str
 

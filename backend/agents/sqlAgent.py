@@ -2,7 +2,7 @@ import os
 from backend.llm.llm import runAgentChain
 from backend.llm.prompt import sql_prompt
 from langchain_community.utilities import SQLDatabase
-
+import time
 DB_URL = os.getenv("DB_URL")
 if not DB_URL:
     DB_USER = os.getenv("DB_USER")
@@ -23,7 +23,7 @@ db = SQLDatabase.from_uri(DB_URL)
 
 def sql_agent(state: dict) -> dict:
     print("\n[SQL Agent]: Inspecting PostgreSQL schema & generating query...")
-
+    start = time.time()
     user_query = state.get("query", "").strip()
 
     live_schema = db.get_table_info()
@@ -48,9 +48,9 @@ def sql_agent(state: dict) -> dict:
         db_result = f"SQL Execution Error: {str(e)}"
 
     print("[SQL Agent]: PostgreSQL query execution finished.")
-
+    
+    print(f"\n|---- Time Taken = {time.time()-start : .2f} ----|")
     return {
         "sql_query": clean_sql,
-        "sql_result": str(db_result),
-        "context": [f"Database Query Output:\n{db_result}"]
+        "sql_result": str(db_result),    
     }
