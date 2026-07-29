@@ -62,7 +62,7 @@ async def query(request: QueryRequest):
     result = rag_graph.invoke(inputs)
 
     return {
-        "answer": result.get("final_response"),
+        "answer": result.get("answer"),
         "sources": result.get("sources"),
         "documents": result.get("documents"),
         "images": result.get("image_paths")

@@ -1,5 +1,3 @@
-"""OmniBrain Streamlit chat application."""
-
 import streamlit as st
 
 from api import ApiError, query_agent
@@ -17,12 +15,12 @@ def render_chat() -> None:
     """Render conversation history and handle the next user question."""
     conversation_count = len(st.session_state.messages) // 2
     st.markdown(
-        f'<div class="topbar"><div><div class="eyebrow">OMNIBRAIN WORKSPACE</div><div class="workspace-title">Multimodal research assistant</div></div><div class="workspace-meta">{conversation_count} exchanges | live retrieval</div></div>',
+        f'<div class="topbar"><div><div class="eyebrow">OMNIBRAIN WORKSPACE</div><div class="workspace-title">Multimodal research assistant</div></div>',
         unsafe_allow_html=True,
     )
     if not st.session_state.messages:
         st.markdown(
-            '<div class="welcome"><div class="eyebrow">PRIVATE KNOWLEDGE INTERFACE</div><h1>Turn your files<br>into clarity.</h1><p>Ask questions across documents, spreadsheets, and visual evidence. OmniBrain retrieves the context and brings the answer into focus.</p><div class="prompt-card">Try: "Summarize the key risks in the uploaded report and cite the relevant pages."</div></div>',
+            '<div class="welcome"><div class="eyebrow">OMNIBRAIN INTERFACE</div><br><p>Ask the questions across documents, spreadsheets, and visual evidence. OmniBrain retrieves the context and brings the response of the question.</p></div>',
             unsafe_allow_html=True,
         )
 

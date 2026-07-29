@@ -73,7 +73,6 @@ def render_sidebar() -> None:
     """Render branding, document upload controls, and chat reset."""
     with st.sidebar:
         st.markdown('<div class="brand"><span class="brand-mark">O</span><span class="brand-name">OmniBrain</span></div>', unsafe_allow_html=True)
-        st.markdown('<div class="subtitle">Your private intelligence layer for documents, tables, and images.</div>', unsafe_allow_html=True)
         api_online = check_api_status()
         status_class = "" if api_online else "offline"
         status_text = "Backend connected" if api_online else "Backend offline"
@@ -123,16 +122,16 @@ def render_sidebar() -> None:
             st.rerun()
 
 
-def render_sources(sources: Any) -> None:
-    """Render source references in a compact expandable section."""
-    source_items = as_list(sources)
-    if not source_items:
-        return
-    with st.expander(f"Sources  /  {len(source_items)} references", expanded=False):
-        for source in source_items:
-            page = source.get("page") if isinstance(source, dict) else None
-            page_label = f" | page {page}" if page else ""
-            st.markdown(f'<div class="source-item"><span class="source-index">REF</span><span>{display_name(source)}{page_label}</span></div>', unsafe_allow_html=True)
+# def render_sources(sources: Any) -> None:
+#     """Render source references in a compact expandable section."""
+#     source_items = as_list(sources)
+#     if not source_items:
+#         return
+#     with st.expander(f"Sources  /  {len(source_items)} references", expanded=False):
+#         for source in source_items:
+#             page = source.get("page") if isinstance(source, dict) else None
+#             page_label = f" | page {page}" if page else ""
+#             st.markdown(f'<div class="source-item"><span class="source-index">REF</span><span>{display_name(source)}{page_label}</span></div>', unsafe_allow_html=True)
 
 
 def render_documents(documents: Any) -> None:
@@ -163,9 +162,9 @@ def render_response(response: dict[str, Any]) -> None:
     """Render an assistant answer and all optional retrieval metadata."""
     answer = response.get("answer") or "No answer was returned by the agent."
     st.markdown(answer)
-    render_sources(response.get("sources"))
+    # render_sources(response.get("sources"))
     render_documents(response.get("documents"))
     render_images(response.get("images"))
-    with st.expander("Agent thought process", expanded=False):
-        thought_process = response.get("thought_process")
-        st.write(thought_process or "Thought process unavailable.")
+    # with st.expander("Agent thought process", expanded=False):
+    #     thought_process = response.get("thought_process")
+    #     st.write(thought_process or "Thought process unavailable.")
