@@ -37,6 +37,7 @@ SEARCH:
 - If the user is asking about information contained in uploaded documents.
 
 SQL:
+- If the user asks to display, show, list, fetch, or retrieve records from an uploaded CSV, Excel, or database table.
 - ONLY if the answer requires querying uploaded CSV, Excel, or database tables.
 - ONLY if the user asks for filtering, aggregation, sorting, counts, averages, sums, or table records.
 
@@ -87,6 +88,12 @@ Given the following live database schema, generate a syntactically correct Postg
 
 Database Schema:
 {schema}
+
+Table Name:
+{table_name}
+
+columns:
+{columns}
 
 Rules:
 1. Use ONLY table and column names provided in the schema above.

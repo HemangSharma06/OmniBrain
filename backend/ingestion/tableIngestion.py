@@ -3,28 +3,11 @@ import re
 import hashlib
 import warnings
 warnings.filterwarnings('ignore')
-
 import pandas as pd
-from sqlalchemy import create_engine, text, inspect
+from sqlalchemy import text, inspect
 from dotenv import load_dotenv
-
+from backend.Database.db import engine
 load_dotenv()
-
-# Environment Credentials & DB URL Setup
-DB_URL = os.getenv("DB_URL")
-if not DB_URL:
-    DB_USER = os.getenv("DB_USER")
-    DB_PASSWORD = os.getenv("DB_PASSWORD")
-    DB_HOST = os.getenv("DB_HOST", "localhost")
-    DB_PORT = os.getenv("DB_PORT", "5432")
-    DB_DATABASE = os.getenv("DB_DATABASE", "omnibrain")
-
-    if DB_USER and DB_PASSWORD:
-        DB_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_DATABASE}"
-
-# SQLAlchemy Engine
-engine = create_engine(DB_URL) if DB_URL else None
-
 
 def hashFunction(filepath: str) -> str:
     """Memory-safe MD5 Hash calculation reading file in 8KB chunks."""
@@ -88,14 +71,54 @@ def loadTabularDocuments(filepath: str) -> str:
         if result:
             existing_table = result[0]
             print(f"[DUPLICATE DETECTED] File content already exists in table '{existing_table}'. Skipping upload.")
+            with engine.begin() as conn:
+                conn.execute(
+                    text("""
+                        UPDATE uploaded_files_metadata
+                        SET uploaded_at = CURRENT_TIMESTAMP
+                        WHERE file_hash = :hash
+                    """),
+                    {"hash": file_hash}
+                )
             return existing_table
 
-    # 2. Reading file first (Catch parsing errors BEFORE reserving table names)
+    # 2. Reading file first
     try:
         if filepath.endswith('.csv'):
             df = pd.read_csv(filepath)
         elif filepath.endswith(('.xls', '.xlsx')):
-            df = pd.read_excel(filepath)
+            
+            # Read without assuming any header
+            temp_df = pd.read_excel(filepath, header=None)
+
+            # Search first 20 rows (or total rows if <20)
+            best_filled = -1
+            header_row = 0
+            max_rows = min(20, len(temp_df))
+
+            # Pass 1: Find maximum non-null cells
+            for i in range(max_rows):
+                filled = temp_df.iloc[i].notna().sum()
+
+                if filled > best_filled:
+                    best_filled = filled
+
+            # Pass 2: First row having maximum filled cells is treated as header
+            for i in range(max_rows):
+                filled = temp_df.iloc[i].notna().sum()
+
+                if filled == best_filled:
+                    header_row = i
+                    break
+
+            print(f"[Excel] Detected Header Row: {header_row}")
+
+            # Read again using detected header
+            df = pd.read_excel(filepath, header=header_row)
+
+            # Remove completely empty rows & columns
+            df.dropna(axis=0, how="all", inplace=True)
+            df.dropna(axis=1, how="all", inplace=True)
         else:
             print(f"Unsupported tabular format: {filename}")
             return ""
@@ -112,7 +135,6 @@ def loadTabularDocuments(filepath: str) -> str:
 
         # 3. Dynamic Base Name Creation & Uniqueness Check
         raw_table_name = re.sub(r'[^a-zA-Z0-9_]', '_', os.path.splitext(filename)[0]).lower().strip("_")
-        
         if not raw_table_name:
             raw_table_name = "data_table"
             
@@ -132,7 +154,7 @@ def loadTabularDocuments(filepath: str) -> str:
                 {"hash": file_hash, "fname": filename, "tname": table_name}
             )
 
-        print(f"Dynamic Postgres table created: '{table_name}' ({len(df)} rows)")
+        print(f"Dynamically Postgres table created: '{table_name}' ({len(df)} rows)")
         return table_name
 
     except Exception as e:

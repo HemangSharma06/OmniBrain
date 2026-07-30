@@ -27,12 +27,19 @@ def sql_agent(state: dict) -> dict:
     user_query = state.get("query", "").strip()
 
     live_schema = db.get_table_info()
-
+    columns = state.get("columns", [])
+    table_name = state.get("table_name", "")
+    print()
+    print("-"*40)
+    print(f"Table Name: {table_name}\n columns: {columns}")
+    print("-"*40)
     generated_sql = runAgentChain(
         sql_prompt,
         {
             "question": user_query,
-            "schema": live_schema
+            "schema": live_schema,
+            "table_name":table_name,
+            "columns":columns
         }
     ).strip()
 

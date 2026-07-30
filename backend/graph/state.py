@@ -25,6 +25,10 @@ class AgentState(TypedDict):
     # Sources
     sources: list[str]
 
+    # Table Information
+    table_name : str
+    columns : list[str]
+    
     # Image Path
     image_paths: list[str]
     

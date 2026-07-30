@@ -5,6 +5,7 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from sqlalchemy import text, inspect
 
 project_root = Path(__file__).resolve().parent
 sys.path.append(str(project_root))
@@ -18,6 +19,7 @@ from backend.ingestion.tableIngestion import loadTabularDocuments
 from backend.ingestion.visionIngestion import loadVisionDocuments
 from backend.ingestion.chunking import split_documents
 from backend.ingestion.VectorDB import createVectorStore
+from backend.Database.db import engine
 from qdrant_client import QdrantClient
 
 app = FastAPI(
@@ -44,7 +46,20 @@ async def home():
 
 @app.post("/query")
 async def query(request: QueryRequest):
-
+    with engine.connect() as conn:
+        result = conn.execute(text("""
+            SELECT table_name
+            FROM uploaded_files_metadata
+            ORDER BY uploaded_at DESC
+            LIMIT 1
+        """)).fetchone()
+        if result:
+            table_name = result[0]
+            inspector = inspect(engine)
+            columns = [
+                col["name"]
+                for col in inspector.get_columns(table_name)
+            ]
     inputs = {
         "query": request.query,
         "messages": [],
@@ -52,11 +67,12 @@ async def query(request: QueryRequest):
         "context": [],
         "documents": [],
         "sources": [],
+        "table_name" : table_name,
+        "columns" : columns,
         "image_paths": [],
         "sql_query": "",
         "sql_result": "",
-        "answer": "",
-        "final_response": ""
+        "answer": ""
     }
 
     result = rag_graph.invoke(inputs)
@@ -115,7 +131,6 @@ def process_document(filepath: str):
                 print(f"✅ {filepath.name} chunked and ingested into Qdrant VectorDB.")
 
     finally:
-        # Guarantee single-file behavior: Always cleanup temp file after processing (or if an error occurs)
         if filepath.exists():
             filepath.unlink()
             print(f"{filepath.name} removed from temp storage.")

@@ -2,22 +2,34 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from langchain_ollama import ChatOllama
 # from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 load_dotenv()
 
 # OLLAMA
-base_llm = ChatOllama(
-    model="llama3.2:3b",
-    temperature=0,
-    num_predict=512,
-    keep_alive=-1,
-    num_ctx=4096
-)
+# base_llm = ChatOllama(
+#     model="llama3.2:3b",
+#     temperature=0,
+#     num_predict=512,
+#     keep_alive=-1,
+#     num_ctx=4096
+# )
 
-vision_base_llm = ChatOllama(
-    model="llama3.2:3b",
+# vision_base_llm = ChatOllama(
+#     model="llama3.2:3b",
+#     temperature=0
+# )
+
+# Gemini
+base_llm = ChatGoogleGenerativeAI(
+    model="gemini-flash-latest",
     temperature=0
 )
+vision_base_llm = ChatGoogleGenerativeAI(
+    model="gemini-flash-latest",
+    temperature=0
+)
+
 
 # OpenAI
 # base_llm = ChatOpenAI(
@@ -26,7 +38,7 @@ vision_base_llm = ChatOllama(
 # )
 llm = base_llm.with_retry(
     stop_after_attempt=5,
-    wait_exponential_jitter=True
+    wait_exponential_jitter=True,
 )
 
 # FOR VISION AGENT
@@ -34,7 +46,6 @@ llm = base_llm.with_retry(
 #     model="gpt-4.1-mini",
 #     temperature=0
 # )
-
 vision_llm = vision_base_llm.with_retry(
     stop_after_attempt=5,
     wait_exponential_jitter=True
@@ -58,15 +69,28 @@ def getRouterDecision(question, prompt_template):
 
     print("RAW LLM:")
     print(response.content)
+    
+    if isinstance(response.content, list):
 
-    return response.content.strip().upper()
+            text = []
+
+            for block in response.content:
+                if (
+                    isinstance(block, dict)
+                    and block.get("type") == "text"
+                ):
+                    text.append(block.get("text", ""))
+
+            return "".join(text).strip().upper()
+
+    return str(response.content).strip().upper()
 
 
 # Generic LLM Chain
 def runAgentChain(prompt_template, variables):
-
+    
     chain = prompt_template | llm
-
+    
     response = chain.invoke(variables)
 
     if hasattr(response, "content"):
