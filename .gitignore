@@ -224,3 +224,10 @@ db/
 
 # Pyache
 __pycache__/
+
+# Testing files
+run.py
+pipeline.py
+
+# Testing models file
+models.txt
