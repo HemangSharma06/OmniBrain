@@ -42,8 +42,11 @@ SQL:
 - ONLY if the user asks for filtering, aggregation, sorting, counts, averages, sums, or table records.
 
 VISION:
-- ONLY if the user explicitly asks about an image, chart, graph, or diagram.
-
+- ONLY when image_paths already exist in current state.
+- NEVER route directly to VISION for images/charts/figures inside documents.
+- For images, charts, graphs, tables inside uploaded documents:
+  ALWAYS choose SEARCH first.
+  
 If unsure, choose SEARCH.
 
 Return ONLY one word:

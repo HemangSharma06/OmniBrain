@@ -16,11 +16,11 @@ from backend.ingestion.pdfIngestion import loadPdfDocuments
 from backend.ingestion.textIngestion import loadTextDocuments
 from backend.ingestion.imageIngestion import load_images
 from backend.ingestion.tableIngestion import loadTabularDocuments
-from backend.ingestion.visionIngestion import loadVisionDocuments
 from backend.ingestion.chunking import split_documents
-from backend.ingestion.VectorDB import createVectorStore
+from backend.ingestion.VectorDB import createVectorStore, createImageVectorStore
+from backend.ingestion.qdrant import client
 from backend.Database.db import engine
-from qdrant_client import QdrantClient
+from backend.vision.clip import get_image_embedding
 
 app = FastAPI(
     title="OmniBrain API",
@@ -103,32 +103,49 @@ def process_document(filepath: str):
         # ROUTE B: UNSTRUCTURED DATA -> Chunking -> Qdrant Vector DB
         else:
             documents = []
+            images = []
             dir_path = os.path.dirname(file_str_path)
             if suffix == ".pdf":
-                documents.extend(loadPdfDocuments(dir_path))
+                docs, imgs = loadPdfDocuments(dir_path)
+                documents.extend(docs)
+                images.extend(imgs)
 
             elif suffix in [".doc", ".docx"]:
-                documents.extend(loadWordDocuments(dir_path))
+                docs, imgs = loadWordDocuments(dir_path)
+                documents.extend(docs)
+                images.extend(imgs)
 
             elif suffix == ".txt":
                 documents.extend(loadTextDocuments(dir_path))
 
             elif suffix in [".png", ".jpg", ".jpeg"]:
                 documents.extend(load_images(dir_path))
-                documents.extend(loadVisionDocuments(dir_path))
+                images.append(file_str_path)
 
             else:
                 raise ValueError(f"Unsupported file type: {suffix}")
-
+            
             if documents:
+                print("\nDocuments Ingestion")
                 chunks = split_documents(documents)
-
-                client = QdrantClient(
-                    path=str(project_root / "db" / "qdrant_db")
-                )
-
                 createVectorStore(chunks, client)
-                print(f"✅ {filepath.name} chunked and ingested into Qdrant VectorDB.")
+                print(f"✅Documents of {filepath.name} chunked and ingested into Qdrant VectorDB.")
+                
+            if images:
+                print("\nImages Ingestion")
+                image_vectors = []
+
+                for image_path in images:
+                    vector = get_image_embedding(image_path)
+                    image_vectors.append(
+                        {
+                            "path": image_path,
+                            "embedding": vector
+                        }
+                    )
+
+                createImageVectorStore(image_vectors,client)
+                print(f"✅Images in {filepath.name} chunked and ingested into Qdrant VectorDB.")
 
     finally:
         if filepath.exists():

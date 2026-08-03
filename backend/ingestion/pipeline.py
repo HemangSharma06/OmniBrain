@@ -8,7 +8,6 @@ from backend.ingestion.pdfIngestion import loadPdfDocuments
 from backend.ingestion.textIngestion import loadTextDocuments
 from backend.ingestion.imageIngestion import load_images
 from backend.ingestion.tableIngestion import loadTabularDocuments
-from backend.ingestion.visionIngestion import loadVisionDocuments
 from backend.ingestion.chunking import split_documents
 from backend.ingestion.VectorDB import createVectorStore
 
@@ -76,7 +75,7 @@ def main():
     print("\nLoading Vision Documents...")
     print("="*60)
     documents.extend(
-        loadVisionDocuments(str(project_root / "data" / "images"))
+        load_images(str(project_root / "data" / "images"))
     )
     
     # Chunking
