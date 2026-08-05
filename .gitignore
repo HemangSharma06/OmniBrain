@@ -231,3 +231,7 @@ pipeline.py
 
 # Testing models file
 models.txt
+
+# temporary files and folder
+temp/
+temp_uploads

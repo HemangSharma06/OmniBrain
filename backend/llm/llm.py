@@ -7,31 +7,31 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 load_dotenv()
 
 # OLLAMA
-base_llm = ChatOllama(
-    model="llama3.2:3b",
-    temperature=0,
-    num_predict=512,
-    keep_alive=-1,
-    num_ctx=4096
-)
+# base_llm = ChatOllama(
+#     model="llama3.2:3b",
+#     temperature=0,
+#     num_predict=512,
+#     keep_alive=-1,
+#     num_ctx=4096
+# )
 
-vision_base_llm = ChatOllama(
-    model="llama3.2:3b",
-    temperature=0,
-    num_predict=512,
-    keep_alive=-1,
-    num_ctx=4096
-)
+# vision_base_llm = ChatOllama(
+#     model="llama3.2:3b",
+#     temperature=0,
+#     num_predict=512,
+#     keep_alive=-1,
+#     num_ctx=4096
+# )
 
 # Gemini
-# base_llm = ChatGoogleGenerativeAI(
-#     model="gemini-flash-latest",
-#     temperature=0
-# )
-# vision_base_llm = ChatGoogleGenerativeAI(
-#     model="gemini-flash-latest",
-#     temperature=0
-# )
+base_llm = ChatGoogleGenerativeAI(
+    model="gemini-flash-latest",
+    temperature=0
+)
+vision_base_llm = ChatGoogleGenerativeAI(
+    model="gemini-flash-latest",
+    temperature=0
+)
 
 
 # OpenAI

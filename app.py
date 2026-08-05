@@ -1,11 +1,15 @@
 from pathlib import Path
 import sys
 import os
+import logging
 from datetime import datetime
-from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks
+from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import text, inspect
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
+logger = logging.getLogger(__name__)
 
 project_root = Path(__file__).resolve().parent
 sys.path.append(str(project_root))
@@ -22,9 +26,16 @@ from backend.ingestion.qdrant import client
 from backend.Database.db import engine
 from backend.vision.clip import get_image_embedding
 
+# Auth — additive only, no existing logic changed
+from backend.auth.models import create_users_table
+from backend.auth.auth import get_current_user
+from backend.auth.schemas import UserOut
+from backend.auth.router import router as auth_router
+
 app = FastAPI(
     title="OmniBrain API",
-    version="1.0.0"
+    version="1.0.0",
+    description="Multimodal RAG assistant with JWT-protected endpoints.",
 )
 
 app.add_middleware(
@@ -34,6 +45,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include the auth router at /auth prefix
+app.include_router(auth_router, prefix="/auth")
+
+# Create users table on startup if a database is available.
+# Do not fail the entire application when Postgres is absent or unreachable.
+try:
+    create_users_table()
+    logger.info("OmniBrain API started. Users table verified.")
+except Exception as exc:
+    logger.warning("OmniBrain API started without database-backed auth bootstrap: %s", exc)
 
 class QueryRequest(BaseModel):
     query: str
@@ -45,21 +67,32 @@ async def home():
     }
 
 @app.post("/query")
-async def query(request: QueryRequest):
-    with engine.connect() as conn:
-        result = conn.execute(text("""
-            SELECT table_name
-            FROM uploaded_files_metadata
-            ORDER BY uploaded_at DESC
-            LIMIT 1
-        """)).fetchone()
-        if result:
-            table_name = result[0]
-            inspector = inspect(engine)
-            columns = [
-                col["name"]
-                for col in inspector.get_columns(table_name)
-            ]
+async def query(
+    request: QueryRequest,
+    current_user: UserOut = Depends(get_current_user),
+):
+    table_name = ""
+    columns = []
+
+    if engine is not None:
+        try:
+            with engine.connect() as conn:
+                result = conn.execute(text("""
+                    SELECT table_name
+                    FROM uploaded_files_metadata
+                    ORDER BY uploaded_at DESC
+                    LIMIT 1
+                """)).fetchone()
+                if result:
+                    table_name = result[0]
+                    inspector = inspect(engine)
+                    columns = [
+                        col["name"]
+                        for col in inspector.get_columns(table_name)
+                    ]
+        except Exception as exc:
+            logger.warning("Query endpoint could not read uploaded table metadata: %s", exc)
+
     inputs = {
         "query": request.query,
         "messages": [],
@@ -67,8 +100,8 @@ async def query(request: QueryRequest):
         "context": [],
         "documents": [],
         "sources": [],
-        "table_name" : table_name,
-        "columns" : columns,
+        "table_name": table_name,
+        "columns": columns,
         "image_paths": [],
         "sql_query": "",
         "sql_result": "",
@@ -156,7 +189,8 @@ def process_document(filepath: str):
 @app.post("/upload")
 async def upload_document(
     background_tasks: BackgroundTasks,
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    current_user: UserOut = Depends(get_current_user),
 ):
     try:
         original_path = Path(file.filename)

@@ -42,10 +42,12 @@ SQL:
 - ONLY if the user asks for filtering, aggregation, sorting, counts, averages, sums, or table records.
 
 VISION:
-- ONLY when image_paths already exist in current state.
-- NEVER route directly to VISION for images/charts/figures inside documents.
-- For images, charts, graphs, tables inside uploaded documents:
-  ALWAYS choose SEARCH first.
+- Use VISION ONLY if image_paths have ALREADY been retrieved by a previous SEARCH step.
+- NEVER select VISION as the first routing decision.
+- If the question refers to images, figures, charts, graphs, diagrams, tables, or visuals contained in uploaded documents, ALWAYS return SEARCH.
+- SEARCH is responsible for retrieving both text context and image_paths.
+- VISION is a follow-up step that analyzes the retrieved image_paths after SEARCH has completed.
+- If image_paths are not already available in the current state, NEVER return VISION. Return SEARCH instead.
   
 If unsure, choose SEARCH.
 
