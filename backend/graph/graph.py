@@ -17,7 +17,6 @@ workflow.add_node("synthesis", synthesis_node)
 
 workflow.set_entry_point("router")
 
-
 # Router Decision
 def router_decision(state):
 
@@ -34,7 +33,6 @@ def router_decision(state):
 
     return "search"
 
-
 workflow.add_conditional_edges(
     "router",
     router_decision,
@@ -44,7 +42,6 @@ workflow.add_conditional_edges(
         "sql": "sql"
     }
 )
-
 
 # After Search decide whether Vision is needed
 def after_search(state):
@@ -56,7 +53,6 @@ def after_search(state):
 
     return "synthesis"
 
-
 workflow.add_conditional_edges(
     "search",
     after_search,
@@ -65,7 +61,6 @@ workflow.add_conditional_edges(
         "synthesis": "synthesis"
     }
 )
-
 
 workflow.add_edge("vision", "synthesis")
 workflow.add_edge("sql", "synthesis")

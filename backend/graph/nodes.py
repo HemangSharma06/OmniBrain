@@ -23,3 +23,4 @@ def sql_node(state):
 # 5. Synthesis Node
 def synthesis_node(state):
     return synthesis_agent(state)
+
