@@ -26,7 +26,6 @@ from backend.ingestion.qdrant import client
 from backend.Database.db import engine
 from backend.vision.clip import get_image_embedding
 
-# Auth — additive only, no existing logic changed
 from backend.auth.models import create_users_table
 from backend.auth.auth import get_current_user
 from backend.auth.schemas import UserOut
