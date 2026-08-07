@@ -20,6 +20,7 @@ def router_agent(state: dict) -> dict:
 
     print(f"\n[Router Agent]: Routing execution to -> {next_agent}")
     print(f"\n|---- Time Taken = {time.time()-start : .2f} ----|")
+    
     return {
         "next_step": next_agent
     }
