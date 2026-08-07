@@ -36,7 +36,6 @@ def synthesis_agent(state: dict) -> dict:
             "context": combined_context
         }
     ).strip()
-
     print(f"\n|---- Time Taken = {time.time()-start:.2f} ----|")
 
     return {
