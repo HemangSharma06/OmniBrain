@@ -22,3 +22,4 @@ if not DB_URL:
 
 # SQLAlchemy Engine
 engine = create_engine(DB_URL) if DB_URL else None
+
