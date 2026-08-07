@@ -237,3 +237,6 @@ temp/
 temp_uploads
 
 review.txt
+
+# init file
+__init__.py
