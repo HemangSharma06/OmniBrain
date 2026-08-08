@@ -23,7 +23,6 @@ Question:
 Answer:
 """)
 
-
 # 2. Router Prompt
 router_prompt = ChatPromptTemplate.from_template("""
 You are the routing agent for OmniBrain.
@@ -60,7 +59,6 @@ Question:
 {question}
 """)
 
-
 # 3. Vision Prompt
 vision_prompt = ChatPromptTemplate.from_template("""
 You are the Vision Agent of OmniBrain.
@@ -83,7 +81,6 @@ Rules:
 
 Answer:
 """)
-
 
 # 4. SQL Prompt (FIXED: Uses dynamic {schema} instead of hardcoded stocks_historical)
 sql_prompt = ChatPromptTemplate.from_template("""
@@ -111,7 +108,6 @@ Question:
 
 SQL:
 """)
-
 
 # 5. Synthesis Prompt
 synthesis_prompt = ChatPromptTemplate.from_template("""
