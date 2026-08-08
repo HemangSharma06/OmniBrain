@@ -10,7 +10,6 @@ def processQuery(query):
     sources = set()
     image_paths = []
 
-
     need_images = any(
         word in query.lower()
         for word in [
@@ -27,7 +26,6 @@ def processQuery(query):
     if need_images:
         query_vector = get_text_embedding(query)
         image_paths = searchImages(query_vector)
-
 
     for doc in docs:
         context_chunks.append(
