@@ -1,8 +1,6 @@
 import warnings
 warnings.filterwarnings("ignore")
-
 from pathlib import Path
-
 # from langchain_openai import OpenAIEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_qdrant import QdrantVectorStore
