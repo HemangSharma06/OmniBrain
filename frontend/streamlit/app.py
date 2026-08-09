@@ -11,7 +11,6 @@ from api import ApiError, login_user, get_current_user_info
 from components import clear_auth_state, inject_styles, persist_auth_state, restore_auth_state, toast
 from config import SESSION_TOKEN_KEY, SESSION_USER_KEY
 
-
 def initialize_state() -> None:
     """Ensure session keys exist on first load."""
     st.session_state.setdefault(SESSION_TOKEN_KEY, None)
@@ -20,7 +19,6 @@ def initialize_state() -> None:
     st.session_state.setdefault("uploaded_files", [])
     st.session_state.setdefault("uploaded_file_keys", set())
     restore_auth_state()
-
 
 def render_login() -> None:
     """Render the login form card."""
@@ -90,7 +88,6 @@ def render_login() -> None:
             'New to OmniBrain? <a class="auth-link" href="Register">Create an account</a></p>',
             unsafe_allow_html=True,
         )
-
 
 def main() -> None:
     """Configure and run the login entry page."""
