@@ -13,7 +13,6 @@ from config import FASTAPI_BASE_URL, API_TIMEOUT_SECONDS
 class ApiError(RuntimeError):
     """A user-facing error raised when the backend cannot complete a request."""
 
-
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 def _auth_headers(token: str | None) -> dict:
@@ -21,7 +20,6 @@ def _auth_headers(token: str | None) -> dict:
     if token:
         return {"Authorization": f"Bearer {token}"}
     return {}
-
 
 def _error_message(response: requests.Response) -> str:
     """Extract a useful detail from a FastAPI error response."""
@@ -33,7 +31,6 @@ def _error_message(response: requests.Response) -> str:
         pass
     return f"The API returned HTTP {response.status_code}."
 
-
 # ── Health check (unchanged) ───────────────────────────────────────────────────
 
 def check_api_status() -> bool:
@@ -44,7 +41,6 @@ def check_api_status() -> bool:
         return response.json().get("message") == "OmniBrain API Running"
     except (requests.exceptions.RequestException, ValueError):
         return False
-
 
 # ── Auth API calls (NEW) ───────────────────────────────────────────────────────
 
@@ -63,7 +59,6 @@ def register_user(username: str, email: str, password: str) -> dict[str, Any]:
     except requests.exceptions.RequestException as exc:
         resp = getattr(exc, "response", None)
         raise ApiError(_error_message(resp) if resp is not None else "Registration failed.") from exc
-
 
 def login_user(username: str, password: str) -> dict[str, Any]:
     """
@@ -84,7 +79,6 @@ def login_user(username: str, password: str) -> dict[str, Any]:
         resp = getattr(exc, "response", None)
         raise ApiError(_error_message(resp) if resp is not None else "Login failed.") from exc
 
-
 def get_current_user_info(token: str) -> dict[str, Any]:
     """Fetch the authenticated user's profile using the JWT token."""
     try:
@@ -101,7 +95,6 @@ def get_current_user_info(token: str) -> dict[str, Any]:
 
 
 # ── Document upload (original logic preserved, token added) ───────────────────
-
 def upload_document(
     file: BinaryIO,
     filename: str,
