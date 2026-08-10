@@ -657,13 +657,11 @@ def clear_auth_state() -> None:
     remove_browser_key(CHAT_HISTORY_KEY, browser_identity)
     remove_browser_key(CURRENT_CHAT_KEY, browser_identity)
 
-
 def logout_current_user() -> None:
     """Fully log out the current user and clear their session state."""
     clear_auth_state()
     clear_user_session_state()
     st.rerun()
-
 
 def restore_auth_state() -> None:
     """Recover auth from browser query params, then validate the JWT before trusting it."""
@@ -690,7 +688,6 @@ def require_auth() -> None:
     if not st.session_state.get(SESSION_TOKEN_KEY):
         st.switch_page("app.py")
 
-
 def toast(message: str, kind: str = "info") -> None:
     """Render a styled toast notification. kind: 'success' | 'error' | 'info'"""
     icon = {"success": "✅", "error": "❌", "info": "ℹ️"}.get(kind, "ℹ️")
@@ -698,7 +695,6 @@ def toast(message: str, kind: str = "info") -> None:
         f'<div class="toast {kind}">{icon} {message}</div>',
         unsafe_allow_html=True,
     )
-
 
 def render_auth_topbar(username: str, include_logout: bool = False) -> None:
     """Render the authenticated user's topbar with avatar and user info."""
@@ -746,7 +742,6 @@ def render_auth_topbar(username: str, include_logout: bool = False) -> None:
             """,
             unsafe_allow_html=True,
         )
-
 
 def render_dashboard_cards() -> None:
     """Render the quick-action card grid on the dashboard."""
