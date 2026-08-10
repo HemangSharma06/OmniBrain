@@ -13,7 +13,6 @@ def as_list(value: Any) -> list[Any]:
         return list(value)
     return [value]
 
-
 def display_name(item: Any) -> str:
     """Get a readable name from a source or document API value."""
     if isinstance(item, dict):
@@ -21,7 +20,6 @@ def display_name(item: Any) -> str:
             if item.get(key):
                 return str(item[key])
     return str(item)
-
 
 def resolve_image_reference(reference: Any) -> str | None:
     """Resolve an image URL or a backend-created local path."""
