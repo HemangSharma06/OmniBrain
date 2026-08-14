@@ -37,7 +37,6 @@ def synthesis_agent(state: dict) -> dict:
         }
     ).strip()
     print(f"\n|---- Time Taken = {time.time()-start:.2f} ----|")
-
     return {
         "answer": final_answer
     }
