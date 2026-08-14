@@ -58,7 +58,6 @@ def input_guardrail_check(payload: Dict) -> Dict:
 
     return {"allowed": True, "reason": "OK", "category": "input", "severity": "low"}
 
-
 def output_guardrail_check(payload: Dict) -> Dict:
     """
     Validate a generated model answer before exposing to the user.
