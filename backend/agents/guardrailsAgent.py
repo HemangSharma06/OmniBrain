@@ -1,80 +1,56 @@
-"""
-backend/agents/guardrailsAgent.py
-
-Simple GuardrailsAgent implementation performing input and output validations.
-This is intentionally conservative and returns a structured validation result.
-"""
-import re
-from typing import Dict
+from backend.llm.llm import runAgentChain
+from backend.llm.prompt import guardrails_prompt
+import time
 
 
-def _contains_secrets(text: str) -> bool:
-    patterns = [r"api[_-]?key", r"secret", r"password", r"access[_-]?token", r"aws[_-]?secret", r"private[_-]?key"]
-    txt = text.lower()
-    return any(re.search(p, txt) for p in patterns)
+def guardrails_agent(state: dict) -> dict:
+    print("\n[Guardrails Agent]: Validating final answer against retrieved evidence...")
+    start = time.time()
 
+    question = state.get("query", "").strip()
+    answer = state.get("answer", "").strip()
 
-def _looks_like_prompt_injection(text: str) -> bool:
-    txt = text.lower()
-    # Common bypass phrases
-    phrases = [
-        r"ignore (previous|earlier) instructions",
-        r"disregard (previous|earlier|all) instructions",
-        r"override (instructions|system prompt)",
-        r"forget (your|the) (instructions|system prompt)",
-        r"where is the system prompt",
-        r"show me the system prompt",
-        r"what are your instructions",
-    ]
-    for p in phrases:
-        if re.search(p, txt):
-            return True
-    return False
+    text_context = state.get("context", [])
+    vision_context = state.get("vision_context", [])
+    sql_context = state.get("sql_result", "")
+    sql_query = state.get("sql_query", "")
 
-
-def input_guardrail_check(payload: Dict) -> Dict:
-    """
-    Validate user input early in the graph.
-
-    Returns a dict: {allowed: bool, reason, category, severity}
-    """
-    query = str(payload.get("query", "") or "").strip()
-
-    if not query:
-        return {"allowed": False, "reason": "Empty query provided.", "category": "input", "severity": "high"}
-
-    if len(query) > 10000 or len(query.split()) > 3000:
-        return {"allowed": False, "reason": "Query too large.", "category": "input", "severity": "high"}
-
-    if _contains_secrets(query):
-        return {"allowed": False, "reason": "Query appears to request secrets or credentials.", "category": "input", "severity": "high"}
-
-    if _looks_like_prompt_injection(query):
-        return {"allowed": False, "reason": "Prompt injection attempt detected.", "category": "input", "severity": "high"}
-
-    # Low-confidence heuristics — mark as caution but allow
-    if "password" in query.lower() or "api key" in query.lower():
-        return {"allowed": False, "reason": "Potential secret-extraction request.", "category": "input", "severity": "high"}
-
-    return {"allowed": True, "reason": "OK", "category": "input", "severity": "low"}
-
-def output_guardrail_check(payload: Dict) -> Dict:
-    """
-    Validate a generated model answer before exposing to the user.
-    Expects payload to contain 'answer' and optionally 'sources'/'documents'.
-    """
-    answer = str(payload.get("answer", "") or "")
+    combined_context = "\n\n".join(text_context + vision_context)
+    if sql_query:
+        combined_context += "\n\nExecuted SQL Query:\n" + sql_query
+    if sql_context:
+        combined_context += "\n\nDatabase Result:\n" + sql_context
+        
+    print("\n========== GUARDRAILS DEBUG ==========")
+    print("QUESTION:", question)
+    print("ANSWER:", repr(answer))
+    print("TEXT CONTEXT:", text_context)
+    print("VISION CONTEXT:", vision_context)
+    print("SQL QUERY:", sql_query)
+    print("SQL RESULT:", sql_context)
+    print("======================================")
+    
     if not answer:
-        return {"allowed": True, "reason": "No answer generated (empty).", "category": "output", "severity": "low"}
+        final_response = "I don't have enough information to answer this question."
+        return {
+            "answer": final_response,
+            "final_response": final_response
+        }
 
-    if _contains_secrets(answer):
-        return {"allowed": False, "reason": "Model output contains secrets or credentials.", "category": "output", "severity": "high"}
+    final_response = runAgentChain(
+        guardrails_prompt,
+        {
+            "question": question,
+            "answer": answer,
+            "context": combined_context or "No supporting context was retrieved."
+        }
+    ).strip()
 
-    if _looks_like_prompt_injection(answer):
-        return {"allowed": False, "reason": "Model output reveals internal instructions.", "category": "output", "severity": "high"}
+    if not final_response:
+        final_response = answer
 
-    # Additional heuristics — e.g., do not allow model to return raw system prompts
-    if "system prompt" in answer.lower() or "developer instruction" in answer.lower():
-        return {"allowed": False, "reason": "Model attempted to reveal system instructions.", "category": "output", "severity": "high"}
-
-    return {"allowed": True, "reason": "OK", "category": "output", "severity": "low"}
+    print(f"\n|---- Time Taken = {time.time()-start:.2f} ----|")
+    return {
+        "answer": final_response,
+        "final_response": final_response
+    }

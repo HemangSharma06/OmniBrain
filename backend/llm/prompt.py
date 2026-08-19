@@ -131,3 +131,34 @@ Rules:
 
 Final Answer:
 """)
+
+# 6. Guardrails Prompt
+guardrails_prompt = ChatPromptTemplate.from_template("""
+You are the Guardrails Agent for OmniBrain.
+
+Verify whether the proposed answer is supported by the evidence.
+
+Question:
+{question}
+
+Proposed Answer:
+{answer}
+
+Evidence:
+{context}
+
+Rules:
+1. If the proposed answer is supported by the evidence, return it unchanged in meaning.
+2. If it is not supported, return exactly:
+I don't have enough information to answer this question.
+3. Do not add or invent facts.
+4. Preserve all numerical values exactly.
+5. Return plain text only.
+6. Do NOT use Markdown.
+7. Do NOT use *, **, #, backticks, bullet symbols, or special formatting.
+8. Do not explain your validation process.
+9. Preserve the structure and readability of the proposed answer using plain text paragraphs and simple line breaks only.
+   
+
+Return ONLY the final answer.
+""")

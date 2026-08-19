@@ -5,7 +5,8 @@ from backend.graph.nodes import (
     search_node,
     vision_node,
     sql_node,
-    synthesis_node
+    synthesis_node,
+    guardrails_node
 )
 
 workflow = StateGraph(AgentState)
@@ -14,6 +15,7 @@ workflow.add_node("search", search_node)
 workflow.add_node("vision", vision_node)
 workflow.add_node("sql", sql_node)
 workflow.add_node("synthesis", synthesis_node)
+workflow.add_node("guardrails", guardrails_node)
 
 workflow.set_entry_point("router")
 
@@ -64,6 +66,7 @@ workflow.add_conditional_edges(
 
 workflow.add_edge("vision", "synthesis")
 workflow.add_edge("sql", "synthesis")
-workflow.add_edge("synthesis", END)
+workflow.add_edge("synthesis", "guardrails")
+workflow.add_edge("guardrails", END)
 
 app = workflow.compile()

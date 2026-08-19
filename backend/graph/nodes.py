@@ -3,6 +3,7 @@ from backend.agents.searchAgent import search_agent
 from backend.agents.visionAgent import vision_agent
 from backend.agents.sqlAgent import sql_agent
 from backend.agents.synthesisAgent import synthesis_agent
+from backend.agents.guardrailsAgent import guardrails_agent
 
 # 1. Router Node
 def router_node(state):
@@ -23,4 +24,8 @@ def sql_node(state):
 # 5. Synthesis Node
 def synthesis_node(state):
     return synthesis_agent(state)
+
+# 6. Guardrails Node
+def guardrails_node(state):
+    return guardrails_agent(state)
 

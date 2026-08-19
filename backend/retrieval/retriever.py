@@ -1,8 +1,7 @@
 import warnings
 warnings.filterwarnings("ignore")
 from pathlib import Path
-# from langchain_openai import OpenAIEmbeddings
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_qdrant import QdrantVectorStore
 from backend.ingestion.qdrant import client
 
@@ -15,19 +14,13 @@ def getRetriever(k):
     if retriever is None:
         print("Loading Retriever...")
 
-        # Embedding Model
-        # embedding_model = OpenAIEmbeddings(
-        #     model="text-embedding-3-small"
-        # )
-
-        embedding_model = HuggingFaceEmbeddings(
-            model_name="BAAI/bge-small-en-v1.5"
+        embedding_model = OpenAIEmbeddings(
+            model="text-embedding-3-small"
         )
 
         project_root = Path(__file__).resolve().parents[2]
         db_path = project_root / "db" / "qdrant_db"
 
-        # Single Qdrant Client for both text and image collections
         vectorstore = QdrantVectorStore(
             client=client,
             embedding=embedding_model,

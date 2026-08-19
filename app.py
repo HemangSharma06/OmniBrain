@@ -1,14 +1,19 @@
 from pathlib import Path
+from contextlib import asynccontextmanager
 import sys
 import os
 import logging
 from datetime import datetime
+
 from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import text, inspect
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 project_root = Path(__file__).resolve().parent
@@ -31,10 +36,35 @@ from backend.auth.auth import get_current_user
 from backend.auth.schemas import UserOut
 from backend.auth.router import router as auth_router
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+
+    # Startup
+    try:
+        create_users_table()
+        logger.info("OmniBrain API started. Users table verified.")
+    except Exception as exc:
+        logger.warning(
+            "OmniBrain API started without database-backed auth bootstrap: %s",
+            exc
+        )
+
+    yield
+
+    # Shutdown
+    try:
+        client.close()
+        logger.info("Qdrant client closed.")
+    except Exception as exc:
+        logger.warning("Failed to close Qdrant client: %s", exc)
+
+
 app = FastAPI(
     title="OmniBrain API",
     version="1.0.0",
     description="Multimodal RAG assistant with JWT-protected endpoints.",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -45,16 +75,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include the auth router at /auth prefix
 app.include_router(auth_router, prefix="/auth")
 
 # Create users table on startup if a database is available.
 # Do not fail the entire application when Postgres is absent or unreachable.
-try:
-    create_users_table()
-    logger.info("OmniBrain API started. Users table verified.")
-except Exception as exc:
-    logger.warning("OmniBrain API started without database-backed auth bootstrap: %s", exc)
+# The actual startup initialization is handled by the FastAPI lifespan.
 
 class QueryRequest(BaseModel):
     query: str
@@ -102,15 +127,18 @@ async def query(
         "table_name": table_name,
         "columns": columns,
         "image_paths": [],
+        "vision_context": [],
         "sql_query": "",
         "sql_result": "",
-        "answer": ""
+        "answer": "",
+        "final_response": ""
     }
 
     result = rag_graph.invoke(inputs)
 
     return {
         "answer": result.get("answer"),
+        "final_response": result.get("final_response") or result.get("answer"),
         "sources": result.get("sources"),
         "documents": result.get("documents"),
         "images": result.get("image_paths")

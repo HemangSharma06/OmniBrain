@@ -122,7 +122,7 @@ This means each user sees only their own chat history, while the system can cont
 1. Install dependencies:
    - `python -m pip install -r requirements.txt`
 2. Start the backend:
-   - `python app.py`
+   - `uvicorn app:app --reload`
 3. Start the frontend:
    - `cd frontend/streamlit`
    - `streamlit run app.py`

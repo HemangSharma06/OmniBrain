@@ -1,5 +1,4 @@
-from langchain_huggingface import HuggingFaceEmbeddings
-# from langchain_openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client.models import VectorParams, Distance, PointStruct
@@ -16,14 +15,9 @@ def createVectorStore(chunks, client):
             )
         )
 
-    # Embedding Model
-    embedding_model = HuggingFaceEmbeddings(
-        model_name="BAAI/bge-small-en-v1.5"
+    embedding_model = OpenAIEmbeddings(
+        model="text-embedding-3-small"
     )
-
-    # embedding_model = OpenAIEmbeddings(
-    #     model="text-embedding-3-small"
-    # )
 
     vectorstore = QdrantVectorStore(
         embedding=embedding_model,
