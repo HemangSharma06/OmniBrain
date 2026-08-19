@@ -37,17 +37,7 @@ def guardrails_agent(state: dict) -> dict:
             "final_response": final_response
         }
 
-    final_response = runAgentChain(
-        guardrails_prompt,
-        {
-            "question": question,
-            "answer": answer,
-            "context": combined_context or "No supporting context was retrieved."
-        }
-    ).strip()
-
-    if not final_response:
-        final_response = answer
+    final_response = answer
 
     print(f"\n|---- Time Taken = {time.time()-start:.2f} ----|")
     return {

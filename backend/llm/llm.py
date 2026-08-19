@@ -1,18 +1,46 @@
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
-from langchain_openai import ChatOpenAI
+# from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_ollama import ChatOllama
 
 load_dotenv()
+# OLLAMA
+base_llm = ChatOllama(
+    model="llama3.2:3b",
+    temperature=0,
+    num_predict=512,
+    keep_alive=-1,
+    num_ctx=4096
+)
+
+vision_base_llm = ChatOllama(
+    model="llama3.2:3b",
+    temperature=0,
+    num_predict=512,
+    keep_alive=-1,
+    num_ctx=4096
+)
 
 # OpenAI
-base_llm = ChatOpenAI(
-    model="gpt-4.1-mini",
-    temperature=0,
-)
-vision_base_llm = ChatOpenAI(
-    model="gpt-4.1-mini",
-    temperature=0
-)
+# base_llm = ChatOpenAI(
+#     model="gpt-4.1-mini",
+#     temperature=0,
+# )
+# vision_base_llm = ChatOpenAI(
+#     model="gpt-4.1-mini",
+#     temperature=0
+# )
+
+# Gemini
+# base_llm = ChatGoogleGenerativeAI(
+#     model="gemini-flash-latest",
+#     temperature=0
+# )
+# vision_base_llm = ChatGoogleGenerativeAI(
+#     model="gemini-flash-latest",
+#     temperature=0
+# )
 llm = base_llm.with_retry(
     stop_after_attempt=5,
     wait_exponential_jitter=True,
